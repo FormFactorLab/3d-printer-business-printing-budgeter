@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Print Job Cost & Profit Analyzer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121824;
+            color: #e2e8f0;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            width: 100%;
+            max-width: 600px;
+        }
+        h2 {
+            color: #38bdf8;
+            margin-top: 0;
+            border-bottom: 2px solid #334155;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-weight: bold;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #38bdf8;
+        }
+        .result-box {
+            background-color: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #38bdf8;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .result-box.total { border-left-color: #fbbf24; }
+        .result-box.profit { border-left-color: #34d399; }
+        .result-label {
+            font-size: 0.95rem;
+            color: #94a3b8;
+        }
+        .result-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+        }
+        .btn-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .btn-save {
+            background-color: #38bdf8;
+            color: #0f172a;
+        }
+        .btn-save:hover { background-color: #0ea5e9; }
+        .btn-reset {
+            background-color: #475569;
+            color: #fff;
+        }
+        .btn-reset:hover { background-color: #334155; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>3D Print Job Cost & Profit Analyzer</h2>
+    
+    <div class="section">
+        <div class="section-title">Job Inputs</div>
+        <div class="input-group">
+            <label for="jobName">Job / Item Name</label>
+            <input type="text" id="jobName" value="Custom Model">
+        </div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label for="spoolCost">Filament Spool Cost ($)</label>
+                <input type="number" id="spoolCost" value="20" step="0.01">
+            </div>
+            <div class="input-group">
+                <label for="weightUsed">Filament Weight Used (g)</label>
+                <input type="number" id="weightUsed" value="150" step="1">
+            </div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label for="printTime">Print Time (Hours)</label>
+                <input type="number" id="printTime" value="6.5" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="powerCost">Power Cost Per Hour ($)</label>
+                <input type="number" id="powerCost" value="0.026" step="0.001">
+            </div>
+        </div>
+        <div class="grid-2">
+            <div class="input-group">
+                <label for="shipping">Shipping Cost ($)</label>
+                <input type="number" id="shipping" value="10" step="0.01">
+            </div>
+            <div class="input-group">
+                <label for="wearFee">Flat Machine Wear Fee ($)</label>
+                <input type="number" id="wearFee" value="0.50" step="0.01">
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="salePrice">Your Sale Price ($)</label>
+            <input type="number" id="salePrice" value="45" step="0.01">
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Calculated Breakdown</div>
+        <div class="result-box">
+            <span class="result-label">Filament Consumed Cost</span>
+            <span class="result-value" id="calcFilament">$0.00</span>
+        </div>
+        <div class="result-box">
+            <span class="result-label">Electricity Cost</span>
+            <span class="result-value" id="calcElectricity">$0.00</span>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Final Results</div>
+        <div class="result-box total">
+            <span class="result-label">TOTAL JOB COST</span>
+            <span class="result-value" id="totalCost">$0.00</span>
+        </div>
+        <div class="result-box profit">
+            <span class="result-label">NET PROFIT</span>
+            <span class="result-value" id="netProfit">$0.00</span>
+        </div>
+        <div class="result-box profit">
+            <span class="result-label">PROFIT MARGIN</span>
+            <span class="result-value" id="profitMargin">0.0%</span>
+        </div>
+    </div>
+
+    <div class="btn-container">
+        <button class="btn-save" onclick="exportJob()">Save / Export Job</button>
+        <button class="btn-reset" onclick="resetForm()">Reset Layout</button>
+    </div>
+</div>
+
+<script>
+    const defaults = {
+        jobName: "Custom Model",
+        spoolCost: 20,
+        weightUsed: 150,
+        printTime: 6.5,
+        powerCost: 0.026,
+        shipping: 10,
+        wearFee: 0.50,
+        salePrice: 45
+    };
+
+    function calculate() {
+        const spoolCost = parseFloat(document.getElementById('spoolCost').value) || 0;
+        const weightUsed = parseFloat(document.getElementById('weightUsed').value) || 0;
+        const printTime = parseFloat(document.getElementById('printTime').value) || 0;
+        const powerCost = parseFloat(document.getElementById('powerCost').value) || 0;
+        const shipping = parseFloat(document.getElementById('shipping').value) || 0;
+        const wearFee = parseFloat(document.getElementById('wearFee').value) || 0;
+        const salePrice = parseFloat(document.getElementById('salePrice').value) || 0;
+
+        // Dynamic Sub-calculations
+        const filamentCost = (spoolCost / 1000) * weightUsed;
+        const electricityCost = printTime * powerCost;
+
+        // Total Job Cost (Filament + Electricity + Shipping + Wear Fee)
+        const totalJobCost = filamentCost + electricityCost + shipping + wearFee;
+        const netProfit = salePrice - totalJobCost;
+        const profitMarginPercent = salePrice > 0 ? (netProfit / salePrice) * 100 : 0;
+
+        // Update UI
+        document.getElementById('calcFilament').innerText = '$' + filamentCost.toFixed(3);
+        document.getElementById('calcElectricity').innerText = '$' + electricityCost.toFixed(3);
+        document.getElementById('totalCost').innerText = '$' + totalJobCost.toFixed(3);
+        document.getElementById('netProfit').innerText = '$' + netProfit.toFixed(3);
+        document.getElementById('profitMargin').innerText = profitMarginPercent.toFixed(2) + '%';
+    }
+
+    function resetForm() {
+        document.getElementById('jobName').value = defaults.jobName;
+        document.getElementById('spoolCost').value = defaults.spoolCost;
+        document.getElementById('weightUsed').value = defaults.weightUsed;
+        document.getElementById('printTime').value = defaults.printTime;
+        document.getElementById('powerCost').value = defaults.powerCost;
+        document.getElementById('shipping').value = defaults.shipping;
+        document.getElementById('wearFee').value = defaults.wearFee;
+        document.getElementById('salePrice').value = defaults.salePrice;
+        calculate();
+    }
+
+    function exportJob() {
+        const jobName = document.getElementById('jobName').value;
+        const totalCost = document.getElementById('totalCost').innerText;
+        const netProfit = document.getElementById('netProfit').innerText;
+        const margin = document.getElementById('profitMargin').innerText;
+        
+        const summary = `3D Print Job Summary\n-----------------------\nJob Name: ${jobName}\nTotal Job Cost: ${totalCost}\nNet Profit: ${netProfit}\nProfit Margin: ${margin}\n`;
+        
+        const blob = new Blob([summary], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${jobName.replace(/\s+/g, '_')}_summary.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // Attach real-time event listeners to all input boxes
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.addEventListener('input', calculate);
+    });
+
+    // Run initial calculation
+    calculate();
+</script>
+
+</body>
+</html>
